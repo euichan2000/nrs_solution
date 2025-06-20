@@ -37,7 +37,6 @@ catkin_install_python(PROGRAMS
   scripts/nrs_node_stream_camera.py
   scripts/nrs_node_discrete_teaching.py
   scripts/nrs_node_continuous_teaching.py
-  scripts/test.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

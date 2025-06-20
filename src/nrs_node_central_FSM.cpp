@@ -149,7 +149,7 @@ private:
       else if (left == "paper" && right == "pointing")
       {
         ROS_INFO("[FSM] Gesture: discrete teaching trigger");
-        callService("/following_mode");
+        callService("/scan_mode");
         callService("/visual_servoing_on");
         launch("nrs_solution", "nrs_discrete_teach.launch", "discrete_teach");
       }
@@ -157,7 +157,7 @@ private:
       else if (left == "paper" && right == "scissors")
       {
         ROS_INFO("[FSM] Gesture: continuous teaching trigger");
-        callService("/following_mode");
+        callService("/scan_mode");
         callService("/visual_servoing_on");
         launch("nrs_solution", "nrs_continuous_teach.launch", "continuous_teach");
       }
@@ -200,7 +200,7 @@ private:
       // Trigger scene save with right 'pointing'
       else if (left == "" && right == "pointing")
       {
-        callService("/scan");
+        callService("/save_view_point");
         last_left = "";
         last_right = "";
       }
@@ -208,6 +208,7 @@ private:
       else if (left == "" && right == "scissors")
       {
         callService("/visual_servoing_off");
+        callService("/scan_view_point");
         callService("/registration");
         callService("/reconstruction");
         terminateMode();
