@@ -5,6 +5,6 @@
   <node name="nrs_node_registration" pkg="nrs_vision" type="nrs_node_registration" output="screen" />
   <node name="nrs_node_reconstruction" pkg="nrs_vision" type="nrs_node_reconstruction" output="screen" />
     <!-- PCL visualize Node (Python) -->
-  <node pkg="nrs_robot" type="nrs_node_visualize_pcl.py" name="nrs_node_visualize_pcl" output="screen" />  
+  <!-- <node pkg="nrs_robot" type="nrs_node_visualize_pcl.py" name="nrs_node_visualize_pcl" output="screen" />   -->
 
 </launch>

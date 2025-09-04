@@ -2,85 +2,12 @@ import rospy
 from geometry_msgs.msg import Point
 from std_srvs.srv import Empty, EmptyResponse
 import numpy as np
-from filterpy.kalman import KalmanFilter
+
 
 
 import numpy as np
 import numpy as np
 import rospy
-
-class DirectionalOutlierFilter:
-    def __init__(self, radius=0.03, max_consecutive_outliers=10):
-        self.radius = radius
-        self.last_point = None
-        self.second_last_point = None
-        self.last_valid_direction = None
-        self.consecutive_outlier_count = 0
-        self.max_consecutive_outliers = max_consecutive_outliers
-
-    def filter(self, x, y, z):
-        p_new = np.array([x, y, z], dtype=np.float32)
-
-        # 초기화 단계: 그냥 통과
-        if self.last_point is None:
-            self.last_point = p_new
-            rospy.loginfo("[OutlierFilter] First point accepted.")
-            return p_new
-        if self.second_last_point is None:
-            self.second_last_point = self.last_point
-            self.last_point = p_new
-            rospy.loginfo("[OutlierFilter] Second point accepted.")
-            return p_new
-
-        dist = np.linalg.norm(p_new - self.last_point)
-
-        if dist > self.radius:
-            # 이상치로 판단됨
-            direction = self.last_point - self.second_last_point
-            norm = np.linalg.norm(direction)
-
-            if norm == 0:
-                # 방향이 없다면 마지막 유효 방향 사용
-                if self.last_valid_direction is not None:
-                    direction = self.last_valid_direction
-                    rospy.logwarn("[OutlierFilter] Zero direction. Using last valid direction.")
-                else:
-                    rospy.logwarn("[OutlierFilter] No direction to project. Returning last point.")
-                    return self.last_point
-            else:
-                direction = direction / norm
-                self.last_valid_direction = direction
-
-            corrected = self.last_point + direction * self.radius
-
-            rospy.logwarn(f"[OutlierFilter] Outlier detected (dist={dist:.4f})")
-            rospy.logwarn(f"    Raw new point: {p_new}")
-            rospy.logwarn(f"    last_point: {self.last_point}")
-            rospy.logwarn(f"    direction: {direction}")
-            rospy.logwarn(f"    corrected point: {corrected}")
-
-            self.second_last_point = self.last_point
-            self.last_point = corrected.copy()
-
-            self.consecutive_outlier_count += 1
-            if self.consecutive_outlier_count >= self.max_consecutive_outliers:
-                rospy.logerr("[OutlierFilter] Too many consecutive outliers! Resetting filter.")
-                self.last_point = None
-                self.second_last_point = None
-                self.last_valid_direction = None
-                self.consecutive_outlier_count = 0
-                return p_new  # 강제로 초기화
-
-            return corrected
-
-        # 정상 값 처리
-        self.second_last_point = self.last_point
-        self.last_point = p_new
-        self.consecutive_outlier_count = 0  # 정상 값이 들어왔으므로 리셋
-        rospy.loginfo(f"[OutlierFilter] Valid point accepted: {p_new}")
-        return p_new
-
-
 
 
 class ContinuousTeachingNode:
@@ -95,11 +22,9 @@ class ContinuousTeachingNode:
         self.last_saved_point = None
         self.file_closed = False
 
-        #self.DOF = DirectionalOutlierFilter()
-
         rospy.Subscriber("hand_pointed_position", Point, self.point_callback, queue_size=1)
 
-        self.output_path = "/home/nrs/catkin_ws/src/nrs_path/data/selected_waypoints.txt"
+        self.output_path = "/home/nrs/catkin_ws/src/nrs_path/data/continuous_teaching_waypoints.txt"
         self.file = open(self.output_path, "w")
         rospy.loginfo(f"[ContinuousTeaching] Writing waypoints to {self.output_path}")
 
@@ -107,8 +32,7 @@ class ContinuousTeachingNode:
         rospy.Service("/continuous_teaching_end", Empty, self.handle_end)
 
     def point_callback(self, msg):
-        # Kalman Filter 적용
-        #fx, fy, fz = self.DOF.filter(msg.x, msg.y, msg.z)
+
         fx, fy, fz = msg.x, msg.y, msg.z
         self.latest_point = np.array([fx, fy, fz])
 
